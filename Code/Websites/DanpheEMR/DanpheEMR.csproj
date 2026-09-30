@@ -271,4 +271,9 @@
     </Content>
   </ItemGroup>
 
+  <!-- The database scripts of the doctor / care-team features travel inside the application and are applied when it starts (CareTeam/DatabaseUpgrader.cs) -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\Database\3. Doctor-Care-Team\*.sql" LogicalName="DatabaseScripts.%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

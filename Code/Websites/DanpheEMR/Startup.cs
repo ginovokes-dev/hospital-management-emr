@@ -1,4 +1,5 @@
 ﻿using Audit.SqlServer.Providers;
+using DanpheEMR.CareTeam;
 using DanpheEMR.CommonTypes;
 using DanpheEMR.Controllers.Settings.DTO;
 using DanpheEMR.Core.Caching;
@@ -30,6 +31,7 @@ using DanpheEMR.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
@@ -93,6 +95,8 @@ namespace DanpheEMR
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            EnsurePrivateJwtKey();
+
             //start--for rbac-testing--sudarshanr--2march-2017
             //services.AddSession();
 
@@ -157,13 +161,21 @@ namespace DanpheEMR
             //end: sud-9Jan'19 for pwd encryption testing
 
 
-            services.AddMvc()
+            services.AddSingleton<LoginThrottle>();
+            services.AddMvc(options =>
+                        {
+                            //slows down password guessing (runs first)
+                            options.Filters.Add(new TypeFilterAttribute(typeof(LoginThrottleFilter)) { IsReusable = true, Order = -1100 });
+                            //every controller action goes through DanpheAccessFilter (who is calling, doctors only see their own patients, admin-only calls)
+                            options.Filters.Add(new TypeFilterAttribute(typeof(DanpheAccessFilter)) { IsReusable = true, Order = -1000 });
+                        })
                         .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver()); // added for disabling serialising json with  camel case
 
             //services.AddMvc().AddApplicationPart(typeof(LoginViewModel).Assembly);
             //start: using service configuration for caching class.--sudarshan 1march'17
             //once we've added appsetting.json into the Configuration, it's accessible easily using the key.
             string connString = Configuration["Connectionstring"];
+            services.AddSingleton<CareTeamStore>(new CareTeamStore(connString));
             int cacheExpMins = Convert.ToInt32(Configuration["CacheExpirationMinutes"]);
             //add cache as singleton since there should be one global object of it.. 
             services.AddSingleton<DanpheCache>(new DanpheCache(connString, cacheExpMins));
@@ -248,8 +260,16 @@ namespace DanpheEMR
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-            app.UseDeveloperExceptionPage();
+            //stack traces are only shown while developing (DANPHE_DETAILED_ERRORS=1 or ASPNETCORE_ENVIRONMENT=Development)
+            if (env.IsDevelopment() || Configuration["DANPHE_DETAILED_ERRORS"] == "1")
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            //care teams, doctor messages, doctor menu entries, first-start admin login/licence (see CareTeam/DatabaseUpgrader.cs)
+            DatabaseUpgrader.Run(Configuration["Connectionstring"], Configuration, loggerFactory.CreateLogger("DatabaseUpgrader"));
             app.UseMiddleware<RewindMiddleWare>();
+            //file names that differ from the request only in letter-case (fine on Windows) are found on Linux/Mac too
+            app.UseMiddleware<CaseInsensitiveStaticFileMiddleware>(env.WebRootPath);
             //start--for rbac-testing--sudarshanr--2march-2017
             app.UseSession();
 
@@ -304,6 +324,23 @@ namespace DanpheEMR
             }
         }
 
+
+        /// <summary>
+        /// appsettings.json ships with a signing key that is public (it is in the source code). Unless told otherwise
+        /// (DANPHE_KEEP_SAMPLE_JWT_KEY=1) a random key is used for this run, so nobody can forge a sign-in token with it.
+        /// Everyone signs in again after a restart.
+        /// </summary>
+        private void EnsurePrivateJwtKey()
+        {
+            string key = Configuration["JwtTokenConfig:JwtKey"];
+            bool isSample = string.IsNullOrEmpty(key) || key.StartsWith("Danphe_EMR@1234567890#");
+            if (isSample && Configuration["DANPHE_KEEP_SAMPLE_JWT_KEY"] != "1")
+            {
+                var bytes = new byte[48];
+                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create()) rng.GetBytes(bytes);
+                Configuration["JwtTokenConfig:JwtKey"] = Convert.ToBase64String(bytes);
+            }
+        }
 
         //start: sud-9Jan'19-- for ConnectionString encryption/decryption
 
