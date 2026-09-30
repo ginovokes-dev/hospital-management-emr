@@ -1,0 +1,9 @@
+.da-tabs { display: flex; gap: 4px; border-bottom: 1px solid #e0e2ec; margin: 0 0 16px; }
+.da-tab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 8px 14px; font-size: 14px; font-weight: 600; color: #6b7080; cursor: pointer; }
+.da-tab.da-active { color: #5867dd; border-bottom-color: #5867dd; }
+.da-credentials { background: #f4f8ff; border: 1px dashed #5867dd; border-radius: 4px; padding: 14px 18px; font-size: 16px; line-height: 1.9; }
+.da-credentials code { font-size: 17px; background: #fff; padding: 2px 8px; border-radius: 3px; border: 1px solid #d5d9ec; user-select: all; }
+.da-inactive td { color: #9a9fb2; }
+.da-inactive td strong { color: #7d8296; }
+.da-pw { display: flex; gap: 6px; }
+.da-pw .ct-input { font-family: Menlo, Consolas, monospace; }

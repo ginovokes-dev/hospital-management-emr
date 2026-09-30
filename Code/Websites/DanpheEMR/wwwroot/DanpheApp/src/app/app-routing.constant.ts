@@ -14,6 +14,16 @@ export const AppRoutingConstant = [
     canActivate: [AuthGuardService],
   },
   {
+    path: "CareTeam",
+    loadChildren: "./care-team/care-team.module#CareTeamModule",
+    canActivate: [AuthGuardService],
+  },
+  {
+    path: "DoctorAdmin",
+    loadChildren: "./doctor-admin/doctor-admin.module#DoctorAdminModule",
+    canActivate: [AuthGuardService],
+  },
+  {
     path: "Patient",
     loadChildren: "./patients/patients.module#PatientsModule",
     canActivate: [AuthGuardService],

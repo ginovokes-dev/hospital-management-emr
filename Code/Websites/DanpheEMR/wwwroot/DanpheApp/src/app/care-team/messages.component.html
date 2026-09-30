@@ -1,0 +1,63 @@
+<div class="ct-page">
+  <div class="ct-card" style="padding: 0">
+    <div class="ct-toolbar" style="padding: 14px 20px 0; margin-bottom: 0">
+      <button class="ct-btn" (click)="compose()">+ New message</button>
+      <button class="ct-btn ct-secondary" [class.ct-active]="folder == 'inbox'" (click)="show('inbox')"
+        [style.background]="folder == 'inbox' ? '#eef0fd' : ''">Inbox<span class="ct-badge" *ngIf="(svc.unread$ | async) > 0">{{ svc.unread$ | async }}</span></button>
+      <button class="ct-btn ct-secondary" (click)="show('sent')" [style.background]="folder == 'sent' ? '#eef0fd' : ''">Sent</button>
+      <span class="ct-grow"></span>
+      <button class="ct-link" *ngIf="folder == 'inbox' && messages.length > 0" (click)="markAllRead()">Mark all as read</button>
+      <button class="ct-link" (click)="load()">Refresh</button>
+    </div>
+    <div class="ct-error" style="padding: 0 20px" *ngIf="error">{{ error }}</div>
+
+    <div class="msg-layout">
+      <div class="msg-list">
+        <div class="ct-empty" *ngIf="loading">Loading ...</div>
+        <div class="ct-empty" *ngIf="!loading && messages.length == 0">
+          <strong>{{ folder == 'inbox' ? 'Your inbox is empty' : 'Nothing sent yet' }}</strong>
+          Messages from colleagues, and notices when a patient is shared with you, appear here.
+        </div>
+        <div class="msg-row" *ngFor="let m of messages" (click)="open(m)"
+          [class.msg-unread]="folder == 'inbox' && !m.IsRead" [class.msg-selected]="selected && selected.MessageId == m.MessageId">
+          <div class="msg-top">
+            <span class="msg-from">{{ who(m) }}</span>
+            <span class="ct-muted msg-date">{{ m.SentOn | date:'d MMM, HH:mm' }}</span>
+          </div>
+          <div class="msg-subject">{{ m.Subject }}</div>
+          <div class="ct-muted msg-preview">{{ m.Preview }}</div>
+          <div>
+            <span class="ct-chip ct-chip-amber" *ngIf="typeLabel(m)">{{ typeLabel(m) }}</span>
+            <span class="ct-chip" *ngIf="m.PatientId">{{ m.PatientName }} ({{ m.PatientCode }})</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg-detail">
+        <div class="ct-empty" *ngIf="!selected"><strong>Select a message to read it</strong></div>
+        <div *ngIf="selected">
+          <h3 class="ct-title" style="margin-bottom: 2px">{{ selected.Subject }}</h3>
+          <div class="ct-sub">
+            From <strong>{{ selected.FromName }}</strong><span *ngIf="selected.FromSpeciality"> ({{ selected.FromSpeciality }})</span>
+            to <strong>{{ selected.ToName }}</strong> &middot; {{ selected.SentOn | date:'EEEE d MMMM yyyy, HH:mm' }}
+          </div>
+          <div *ngIf="selected.PatientId" class="ct-card" style="background: #f7f8fe; box-shadow: none; border: 1px solid #e3e6f6">
+            <div><span class="ct-muted">Patient:</span> <strong>{{ selected.PatientName }}</strong> &middot; {{ selected.PatientCode }} &middot; {{ selected.Age }} / {{ selected.Gender }}</div>
+            <div class="ct-actions" style="margin-top: 8px">
+              <button class="ct-btn ct-small" *ngIf="selected.PatientOnMyTeam" (click)="openPatient()" [disabled]="opening">{{ opening ? 'Opening ...' : 'Open record' }}</button>
+              <button class="ct-btn ct-small" *ngIf="!selected.PatientOnMyTeam" (click)="addPatientToMyCare()" [disabled]="adding">{{ adding ? 'Adding ...' : 'Add to my care' }}</button>
+              <span class="ct-chip ct-chip-green" *ngIf="selected.PatientOnMyTeam">On your list</span>
+            </div>
+          </div>
+          <div style="white-space: pre-wrap; line-height: 1.5; margin: 12px 0 18px">{{ selected.Body }}</div>
+          <div class="ct-actions">
+            <button class="ct-btn ct-small" (click)="reply()">Reply</button>
+            <button class="ct-btn ct-small ct-danger" (click)="remove()">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ct-compose-message-dialog *ngIf="showCompose" [toEmployeeIds]="replyTo" [subject]="replySubject" [patient]="replyPatient" (done)="composed($event)"></ct-compose-message-dialog>

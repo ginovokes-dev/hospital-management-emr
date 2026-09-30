@@ -1,0 +1,41 @@
+<div class="ct-backdrop">
+  <div class="ct-dialog">
+    <div class="ct-dialog-head"><h3>New message</h3><button class="ct-x" (click)="cancel()">&times;</button></div>
+    <div class="ct-dialog-body">
+      <div class="ct-field">
+        <label class="ct-label">To</label>
+        <input class="ct-input" type="text" [(ngModel)]="filter" name="filter" placeholder="Filter colleagues by name or speciality" autocomplete="off" />
+        <div style="max-height: 150px; overflow-y: auto; border: 1px solid #e0e2ec; border-radius: 3px; margin-top: 6px; padding: 4px 10px">
+          <div *ngIf="loading" class="ct-muted" style="padding: 6px 0">Loading ...</div>
+          <label *ngFor="let p of visiblePeople" style="display: block; margin: 4px 0; font-weight: normal; cursor: pointer">
+            <input type="checkbox" [(ngModel)]="selected[p.EmployeeId]" [name]="'to' + p.EmployeeId" />
+            {{ p.Name }} <span class="ct-muted" *ngIf="p.Speciality">&middot; {{ p.Speciality }}</span>
+            <span class="ct-muted" *ngIf="!p.Speciality && p.RoleName">&middot; {{ p.RoleName }}</span>
+          </label>
+          <div *ngIf="!loading && visiblePeople.length == 0" class="ct-muted" style="padding: 6px 0">Nobody found.</div>
+        </div>
+      </div>
+      <div class="ct-field">
+        <label class="ct-label">Subject</label>
+        <input class="ct-input" type="text" maxlength="200" [(ngModel)]="subject" name="subject" autocomplete="off" />
+      </div>
+      <div class="ct-field">
+        <label class="ct-label">Message</label>
+        <textarea class="ct-input" rows="6" maxlength="4000" [(ngModel)]="body" name="body"></textarea>
+      </div>
+      <div class="ct-field">
+        <label class="ct-label">About a patient (optional)</label>
+        <select class="ct-input" [(ngModel)]="attachPatientId" name="attach">
+          <option [ngValue]="null">No patient</option>
+          <option *ngFor="let p of myPatients" [ngValue]="p.PatientId">{{ p.Name }} ({{ p.PatientCode }})</option>
+        </select>
+        <div class="ct-hint">Only your own patients can be attached. The colleague sees the patient's name and number; to open the record they need to be on the patient's care team (use <em>Share</em>).</div>
+      </div>
+      <div class="ct-error" *ngIf="error">{{ error }}</div>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="cancel()">Cancel</button>
+      <button class="ct-btn" (click)="send()" [disabled]="sending || loading">{{ sending ? 'Sending ...' : 'Send' }}</button>
+    </div>
+  </div>
+</div>

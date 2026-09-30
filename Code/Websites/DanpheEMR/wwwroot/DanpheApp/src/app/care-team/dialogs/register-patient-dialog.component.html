@@ -1,0 +1,49 @@
+<div class="ct-backdrop">
+  <div class="ct-dialog">
+    <div class="ct-dialog-head"><h3>Register a new patient</h3><button class="ct-x" (click)="cancel()">&times;</button></div>
+    <div class="ct-dialog-body">
+      <div class="ct-row">
+        <div class="ct-field" style="flex: 0 0 110px; min-width: 100px">
+          <label class="ct-label">Title</label>
+          <select class="ct-input" [(ngModel)]="p.Salutation" name="sal">
+            <option value=""></option>
+            <option *ngFor="let s of salutations" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div class="ct-field"><label class="ct-label">First name *</label><input class="ct-input" [(ngModel)]="p.FirstName" maxlength="100" name="fn" autocomplete="off" /></div>
+        <div class="ct-field"><label class="ct-label">Middle name</label><input class="ct-input" [(ngModel)]="p.MiddleName" maxlength="100" name="mn" autocomplete="off" /></div>
+        <div class="ct-field"><label class="ct-label">Last name *</label><input class="ct-input" [(ngModel)]="p.LastName" maxlength="100" name="ln" autocomplete="off" /></div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-field">
+          <label class="ct-label">Gender *</label>
+          <select class="ct-input" [(ngModel)]="p.Gender" name="gender">
+            <option value=""></option><option>Male</option><option>Female</option><option>Other</option>
+          </select>
+        </div>
+        <div class="ct-field">
+          <label class="ct-label">Date of birth * (year-month-day)</label>
+          <input class="ct-input" type="date" [(ngModel)]="p.DateOfBirth" [max]="today" placeholder="1985-03-27" name="dob" />
+        </div>
+        <div class="ct-field">
+          <label class="ct-label">Blood group</label>
+          <select class="ct-input" [(ngModel)]="p.BloodGroup" name="bg">
+            <option value=""></option>
+            <option *ngFor="let b of bloodGroups" [value]="b">{{ b }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-field"><label class="ct-label">Phone</label><input class="ct-input" [(ngModel)]="p.PhoneNumber" maxlength="20" name="ph" autocomplete="off" /></div>
+        <div class="ct-field"><label class="ct-label">E-mail</label><input class="ct-input" [(ngModel)]="p.Email" maxlength="50" name="em" autocomplete="off" /></div>
+      </div>
+      <div class="ct-field"><label class="ct-label">Address</label><input class="ct-input" [(ngModel)]="p.Address" maxlength="100" name="ad" autocomplete="off" /></div>
+      <div class="ct-hint">The patient is put on your list. You can open the record and start a consultation straight away.</div>
+      <div class="ct-error" *ngIf="error">{{ error }}</div>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="cancel()">Cancel</button>
+      <button class="ct-btn" (click)="save()" [disabled]="saving">{{ saving ? 'Saving ...' : 'Register patient' }}</button>
+    </div>
+  </div>
+</div>

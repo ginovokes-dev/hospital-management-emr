@@ -1,0 +1,11 @@
+<div>
+  <div class="page-bar fixed-top-bar">
+    <ul class="page-breadcrumb">
+      <li *ngFor="let route of validRoutes">
+        <a routerLink="{{route.RouterLink}}" [routerLinkActive]="'link3-active'" aria-expanded="true">{{route.DisplayName}}<span
+            class="ct-badge" *ngIf="route.RouterLink == 'Messages' && (svc.unread$ | async) > 0">{{ svc.unread$ | async }}</span></a>
+      </li>
+    </ul>
+  </div>
+</div>
+<router-outlet></router-outlet>

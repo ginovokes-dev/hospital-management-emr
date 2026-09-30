@@ -1,0 +1,87 @@
+<div class="ct-page">
+  <div class="ct-card">
+    <h2 class="ct-title">My Patients</h2>
+    <p class="ct-sub">The patients under your care. Only you, the doctors you share a patient with, and the administrator can open a patient's record.</p>
+
+    <div class="ct-toolbar">
+      <div class="ct-grow">
+        <input class="ct-input" type="text" placeholder="Search my patients by name, patient number or phone" [(ngModel)]="search" (ngModelChange)="onSearchChange()" autocomplete="off" />
+      </div>
+      <button class="ct-btn ct-secondary" (click)="load()" [disabled]="loading">Refresh</button>
+      <button class="ct-btn" (click)="showRegister = true">+ Register new patient</button>
+    </div>
+
+    <div class="ct-error" *ngIf="error">{{ error }}</div>
+
+    <table class="ct-table" *ngIf="patients.length > 0">
+      <thead>
+        <tr>
+          <th>Patient no.</th>
+          <th>Name</th>
+          <th>Age / Sex</th>
+          <th>Phone</th>
+          <th>Also under</th>
+          <th>Last visit</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of patients">
+          <td>{{ p.PatientCode }}</td>
+          <td><strong>{{ p.Name }}</strong>
+            <div class="ct-hint" *ngIf="p.Relationship == 'Shared' || p.Relationship == 'Self'">
+              <span class="ct-chip ct-chip-amber" *ngIf="p.Relationship == 'Shared'">Shared with you<span *ngIf="p.AddedByName"> by {{ p.AddedByName }}</span></span>
+              <span class="ct-chip ct-chip-grey" *ngIf="p.Relationship == 'Self'">Added by you</span>
+            </div>
+          </td>
+          <td>{{ p.Age }} / {{ p.Gender }}</td>
+          <td>{{ p.PhoneNumber }}</td>
+          <td>
+            <span class="ct-chip" *ngFor="let t of p.Team" [title]="t.Speciality || ''">{{ t.FullName }}</span>
+            <span class="ct-muted" *ngIf="!p.Team || p.Team.length == 0">only you</span>
+          </td>
+          <td>{{ p.LastVisitDate ? (p.LastVisitDate | date:'d MMM yyyy') : '-' }}</td>
+          <td>
+            <div class="ct-actions">
+              <button class="ct-btn ct-small" (click)="openChart(p)" [disabled]="opening == p.PatientId">{{ opening == p.PatientId ? 'Opening...' : 'Open record' }}</button>
+              <button class="ct-btn ct-small ct-secondary" (click)="openChart(p, true)" [disabled]="opening == p.PatientId" title="Start a consultation for today">New consultation</button>
+              <button class="ct-btn ct-small ct-secondary" (click)="shareTarget = p">Share</button>
+              <button class="ct-btn ct-small ct-secondary" (click)="messageTarget = p">Message</button>
+              <button class="ct-btn ct-small ct-danger" (click)="leaveTarget = p" title="Take this patient off my list">Remove</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="ct-empty" *ngIf="!loading && !error && patients.length == 0">
+      <ng-container *ngIf="!search">
+        <strong>No patients on your list yet</strong>
+        Register a new patient, or use <em>Find Patient</em> to look up someone who is already in the system and add them to your care.
+      </ng-container>
+      <ng-container *ngIf="search">
+        <strong>No patient of yours matches "{{ search }}"</strong>
+        Try <em>Find Patient</em> to look for the patient among all patients.
+      </ng-container>
+    </div>
+    <div class="ct-empty" *ngIf="loading">Loading ...</div>
+  </div>
+</div>
+
+<ct-register-patient-dialog *ngIf="showRegister" (done)="registered($event)"></ct-register-patient-dialog>
+<ct-share-patient-dialog *ngIf="shareTarget" [patient]="shareTarget" (done)="shared($event)"></ct-share-patient-dialog>
+<ct-compose-message-dialog *ngIf="messageTarget" [patient]="messageTarget" (done)="messageTarget = null"></ct-compose-message-dialog>
+
+<div class="ct-backdrop" *ngIf="leaveTarget">
+  <div class="ct-dialog" style="max-width: 460px">
+    <div class="ct-dialog-head"><h3>Remove from my list?</h3><button class="ct-x" (click)="leaveTarget = null">&times;</button></div>
+    <div class="ct-dialog-body">
+      <p><strong>{{ leaveTarget.Name }}</strong> ({{ leaveTarget.PatientCode }}) will no longer be on your list and you will not be able to open the record.
+        The patient and their record are not deleted; the doctors who are still on the care team are told. You can add the patient back later with <em>Find Patient</em>.</p>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="leaveTarget = null">Cancel</button>
+      <button class="ct-btn ct-danger" (click)="confirmLeave()">Remove</button>
+    </div>
+  </div>
+</div>

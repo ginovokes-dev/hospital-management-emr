@@ -249,7 +249,8 @@ export class AppComponent {
           //}
           //Ajay 07 Aug 2019
           //redirecting to Landing page (selected by user)
-          if (res.Results.LandingPageRouteId != null) {
+          //a user who has to choose a new password stays on the change-password page (not sent to the landing page)
+          if (res.Results.LandingPageRouteId != null && !loggedUsr.NeedsPasswordUpdate) {
             var path = this.securityService.UserNavigations.find(a => a.RouteId == res.Results.LandingPageRouteId);
             var check = sessionStorage.getItem("isLandingVisited");
             var isLandingVisitedNewTab = localStorage.getItem("isLandingVisitedNewTab");

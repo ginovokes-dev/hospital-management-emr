@@ -1,0 +1,222 @@
+<div class="ct-page">
+  <div class="ct-card">
+    <div class="ct-toolbar" style="justify-content: space-between">
+      <div>
+        <h2 class="ct-title">Manage Doctors</h2>
+        <p class="ct-sub" style="margin: 0">Only the administrator can add doctors, give them a login, change their speciality or role, and withdraw them.</p>
+      </div>
+      <button class="ct-btn" (click)="add()">+ Add doctor</button>
+    </div>
+
+    <div class="da-tabs">
+      <button class="da-tab" [class.da-active]="tab == 'staff'" (click)="tab = 'staff'">Doctors &amp; logins</button>
+      <button class="da-tab" [class.da-active]="tab == 'log'" (click)="showTab('log')">Activity log</button>
+    </div>
+    <div class="ct-error" *ngIf="error">{{ error }}</div>
+
+    <!-- ===== doctors and logins ===== -->
+    <div *ngIf="tab == 'staff'">
+      <div class="ct-toolbar">
+        <div class="ct-grow"><input class="ct-input" type="text" placeholder="Search by name, username, speciality or role" [(ngModel)]="filter" autocomplete="off" /></div>
+        <label style="font-weight: normal; margin: 0"><input type="checkbox" [(ngModel)]="showWithdrawn" /> Show withdrawn</label>
+      </div>
+      <table class="ct-table" *ngIf="visibleStaff.length > 0">
+        <thead>
+          <tr><th>Name</th><th>Speciality</th><th>Role</th><th>Username</th><th>Patients</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of visibleStaff" [class.da-inactive]="!isActive(s)">
+            <td><strong>{{ s.FullName }}</strong>
+              <div class="ct-hint" *ngIf="s.Email">{{ s.Email }}</div></td>
+            <td>{{ s.Speciality || s.DepartmentName || '-' }}
+              <div class="ct-hint" *ngIf="s.Speciality && s.DepartmentName && s.Speciality != s.DepartmentName">{{ s.DepartmentName }}</div></td>
+            <td><span class="ct-chip" [class.ct-chip-green]="s.IsSuperAdmin">{{ s.IsSuperAdmin ? 'Administrator' : (s.RoleName || '-') }}</span></td>
+            <td><code>{{ s.UserName }}</code></td>
+            <td>{{ s.IsDoctorRole ? s.PatientCount : '-' }}</td>
+            <td>
+              <span class="ct-chip ct-chip-green" *ngIf="isActive(s)">Active</span>
+              <span class="ct-chip ct-chip-red" *ngIf="!isActive(s)">Withdrawn</span>
+              <span class="ct-chip ct-chip-amber" *ngIf="isActive(s) && s.MustChangePassword" title="Will be asked for a new password at the next sign-in">New password due</span>
+            </td>
+            <td>
+              <div class="ct-actions">
+                <button class="ct-btn ct-small ct-secondary" (click)="edit(s)">Edit</button>
+                <button class="ct-btn ct-small ct-secondary" (click)="startReset(s)">Reset password</button>
+                <button class="ct-btn ct-small ct-danger" *ngIf="isActive(s) && !s.IsSuperAdmin" (click)="startWithdraw(s)">Withdraw</button>
+                <button class="ct-btn ct-small" *ngIf="!isActive(s)" (click)="reactivate(s)">Re-activate</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="ct-empty" *ngIf="!loading && visibleStaff.length == 0"><strong>Nobody found</strong></div>
+      <div class="ct-empty" *ngIf="loading">Loading ...</div>
+    </div>
+
+    <!-- ===== activity log ===== -->
+    <div *ngIf="tab == 'log'">
+      <p class="ct-sub">Who searched for, added, shared or was refused a patient, and what the administrator changed. The newest 300 entries.</p>
+      <table class="ct-table" *ngIf="log.length > 0">
+        <thead><tr><th>When</th><th>Who</th><th>What</th><th>Patient</th><th>Other doctor</th><th>Details</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let l of log">
+            <td style="white-space: nowrap">{{ l.LoggedOn | date:'d MMM yyyy, HH:mm' }}</td>
+            <td>{{ l.Actor }}</td>
+            <td>{{ actionLabel(l.Action) }}</td>
+            <td><span *ngIf="l.PatientId">{{ l.PatientName }} <span class="ct-muted">({{ l.PatientCode }})</span></span></td>
+            <td>{{ l.Target }}</td>
+            <td class="ct-muted">{{ l.Detail }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="ct-empty" *ngIf="log.length == 0"><strong>Nothing has been recorded yet</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== add / edit dialog ===== -->
+<div class="ct-backdrop" *ngIf="editing">
+  <div class="ct-dialog">
+    <div class="ct-dialog-head"><h3>{{ isNew ? 'Add a doctor' : 'Edit ' + editing.UserName }}</h3><button class="ct-x" (click)="editing = null">&times;</button></div>
+    <div class="ct-dialog-body">
+      <div class="ct-row">
+        <div class="ct-field" style="flex: 0 0 110px; min-width: 100px">
+          <label class="ct-label">Title</label>
+          <select class="ct-input" [(ngModel)]="editing.Salutation" name="sal">
+            <option value=""></option>
+            <option *ngFor="let s of salutations" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div class="ct-field"><label class="ct-label">First name *</label><input class="ct-input" [(ngModel)]="editing.FirstName" maxlength="30" name="fn" autocomplete="off" /></div>
+        <div class="ct-field"><label class="ct-label">Last name *</label><input class="ct-input" [(ngModel)]="editing.LastName" maxlength="30" name="ln" autocomplete="off" /></div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-field">
+          <label class="ct-label">Gender</label>
+          <select class="ct-input" [(ngModel)]="editing.Gender" name="g"><option value=""></option><option>Male</option><option>Female</option><option>Other</option></select>
+        </div>
+        <div class="ct-field"><label class="ct-label">E-mail</label><input class="ct-input" [(ngModel)]="editing.Email" maxlength="100" name="em" autocomplete="off" /></div>
+        <div class="ct-field"><label class="ct-label">Phone</label><input class="ct-input" [(ngModel)]="editing.ContactNumber" maxlength="20" name="ph" autocomplete="off" /></div>
+      </div>
+
+      <div class="ct-row" *ngIf="!editing.IsSuperAdmin">
+        <div class="ct-field">
+          <label class="ct-label">Role *</label>
+          <select class="ct-input" [(ngModel)]="editing.RoleId" name="role">
+            <option *ngFor="let r of roles" [ngValue]="r.RoleId">{{ r.RoleName }}{{ r.IsDoctorRole ? ' (doctor - sees only their own patients)' : '' }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-field">
+          <label class="ct-label">Speciality / department {{ roleIsDoctor ? '*' : '' }}</label>
+          <select class="ct-input" [(ngModel)]="editing.DepartmentId" (ngModelChange)="onDepartmentChange()" name="dept">
+            <option [ngValue]="null"></option>
+            <option *ngFor="let d of departments" [ngValue]="d.DepartmentId">{{ d.DepartmentName }}</option>
+          </select>
+        </div>
+        <div class="ct-field">
+          <label class="ct-label">Speciality shown to colleagues</label>
+          <input class="ct-input" [(ngModel)]="editing.Speciality" maxlength="100" name="spec" list="da-specialities" placeholder="e.g. Interventional cardiology" autocomplete="off" />
+          <datalist id="da-specialities"><option *ngFor="let s of specialities" [value]="s"></option></datalist>
+        </div>
+        <div class="ct-field"><label class="ct-label">Registration no.</label><input class="ct-input" [(ngModel)]="editing.MedCertificationNo" maxlength="20" name="cert" autocomplete="off" /></div>
+      </div>
+
+      <div *ngIf="isNew" class="ct-card" style="background: #f7f8fe; box-shadow: none; border: 1px solid #e3e6f6; padding: 12px 14px">
+        <strong>Sign-in</strong>
+        <div class="ct-row" style="margin-top: 8px">
+          <div class="ct-field">
+            <label class="ct-label">Username * <span class="ct-muted" style="font-weight: normal">(not case sensitive)</span></label>
+            <input class="ct-input" [(ngModel)]="editing.UserName" maxlength="30" name="un" autocomplete="off" placeholder="e.g. dr.smith" />
+          </div>
+          <div class="ct-field">
+            <label class="ct-label">Password * <span class="ct-muted" style="font-weight: normal">(6 to 20 characters)</span></label>
+            <div class="da-pw">
+              <input class="ct-input" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="editing.Password" maxlength="20" name="pw" autocomplete="new-password" />
+              <button class="ct-btn ct-secondary ct-small" style="height: 38px" (click)="showPassword = !showPassword" type="button">{{ showPassword ? 'Hide' : 'Show' }}</button>
+              <button class="ct-btn ct-secondary ct-small" style="height: 38px" (click)="newPassword()" type="button">Generate</button>
+            </div>
+          </div>
+        </div>
+        <label style="font-weight: normal; margin: 0"><input type="checkbox" [(ngModel)]="editing.MustChangePassword" name="must" /> Ask the doctor to choose their own password at first sign-in</label>
+      </div>
+      <div class="ct-error" *ngIf="formError">{{ formError }}</div>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="editing = null">Cancel</button>
+      <button class="ct-btn" (click)="save()" [disabled]="saving">{{ saving ? 'Saving ...' : (isNew ? 'Create login' : 'Save changes') }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== the new / reset login, shown once ===== -->
+<div class="ct-backdrop" *ngIf="issued">
+  <div class="ct-dialog" style="max-width: 520px">
+    <div class="ct-dialog-head"><h3>{{ issued.reset ? 'Password changed' : 'Login created' }}</h3></div>
+    <div class="ct-dialog-body">
+      <p>Give these sign-in details to <strong>{{ issued.name }}</strong>:</p>
+      <div class="da-credentials">
+        Username: <code>{{ issued.userName }}</code><br />
+        Password: <code>{{ issued.password }}</code>
+      </div>
+      <p class="ct-hint" style="margin-top: 10px">
+        <span *ngIf="issued.mustChange">They will be asked to choose their own password the first time they sign in. </span>
+        For security the password is not shown again. If it is lost, use <em>Reset password</em>.
+      </p>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="copyIssued()">Copy</button>
+      <button class="ct-btn" (click)="issued = null">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== reset password ===== -->
+<div class="ct-backdrop" *ngIf="resetTarget">
+  <div class="ct-dialog" style="max-width: 480px">
+    <div class="ct-dialog-head"><h3>Reset password</h3><button class="ct-x" (click)="resetTarget = null">&times;</button></div>
+    <div class="ct-dialog-body">
+      <p>New password for <strong>{{ resetTarget.FullName }}</strong> (<code>{{ resetTarget.UserName }}</code>):</p>
+      <div class="ct-field">
+        <div class="da-pw">
+          <input class="ct-input" type="text" [(ngModel)]="resetPassword" maxlength="20" name="rpw" autocomplete="off" />
+          <button class="ct-btn ct-secondary ct-small" style="height: 38px" (click)="resetPassword = generatePassword()" type="button">Generate</button>
+        </div>
+      </div>
+      <label style="font-weight: normal"><input type="checkbox" [(ngModel)]="resetMustChange" name="rmust" /> Ask them to choose their own password at the next sign-in</label>
+      <div class="ct-error" *ngIf="resetError">{{ resetError }}</div>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="resetTarget = null">Cancel</button>
+      <button class="ct-btn" (click)="confirmReset()">Change password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== withdraw ===== -->
+<div class="ct-backdrop" *ngIf="withdrawTarget">
+  <div class="ct-dialog" style="max-width: 520px">
+    <div class="ct-dialog-head"><h3>Withdraw {{ withdrawTarget.FullName }}</h3><button class="ct-x" (click)="withdrawTarget = null">&times;</button></div>
+    <div class="ct-dialog-body">
+      <p>The login stops working immediately (even if they are signed in right now). Nothing is deleted: their notes, orders and patient history stay in the record,
+        and you can re-activate the login later.</p>
+      <div class="ct-field">
+        <label class="ct-label">Reason (kept in the activity log)</label>
+        <input class="ct-input" type="text" maxlength="200" [(ngModel)]="withdrawReason" name="reason" autocomplete="off" />
+      </div>
+      <div class="ct-field" *ngIf="withdrawTarget.PatientCount > 0">
+        <label class="ct-label">Hand over their {{ withdrawTarget.PatientCount }} patient(s) to</label>
+        <select class="ct-input" [(ngModel)]="handOverTo" name="handover">
+          <option [ngValue]="null">Nobody - the patients stay under them (other doctors can still add themselves)</option>
+          <option *ngFor="let d of activeDoctors" [ngValue]="d.EmployeeId">{{ d.FullName }}{{ d.Speciality ? ' - ' + d.Speciality : '' }}</option>
+        </select>
+      </div>
+      <div class="ct-error" *ngIf="withdrawError">{{ withdrawError }}</div>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="withdrawTarget = null">Cancel</button>
+      <button class="ct-btn ct-danger" (click)="confirmWithdraw()">Withdraw</button>
+    </div>
+  </div>
+</div>

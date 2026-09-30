@@ -99,7 +99,9 @@ export class PatientOverviewMainComponent {
   //sud:4Apr'20--to go to MyAppointments page.
   public BackToHome() {
     if (this.currentModuleName == "doctor") {
-      this.router.navigate(["/Doctors/OutPatientDoctor"]);
+      //doctors who have the Care Team screens go back to their own patient list
+      const myPatients = this.securityService.UserNavigations.find(n => n.UrlFullPath == "CareTeam/MyPatients");
+      this.router.navigate([myPatients ? "/CareTeam/MyPatients" : "/Doctors/OutPatientDoctor"]);
     } else if (this.currentModuleName == "nursing") {
       if (this.visitService.globalVisit.VisitType == "outpatient") {
         this.router.navigate(["/Nursing/OutPatient"]);

@@ -1,0 +1,74 @@
+<div class="ct-page">
+  <div class="ct-card">
+    <h2 class="ct-title">Find Patient</h2>
+    <p class="ct-sub">Look up any patient by name or patient number to see which doctor they are under. To open the record, add the patient to your care.
+      Searches are recorded in the audit log.</p>
+
+    <div class="ct-toolbar">
+      <div class="ct-grow">
+        <input class="ct-input" type="text" placeholder="Patient name or number, e.g. &quot;Jane Doe&quot; or 2401000012" [(ngModel)]="search" (keyup.enter)="run()" autocomplete="off" />
+      </div>
+      <button class="ct-btn" (click)="run()" [disabled]="busy">{{ busy ? 'Searching ...' : 'Search' }}</button>
+    </div>
+    <div class="ct-error" *ngIf="error">{{ error }}</div>
+
+    <table class="ct-table" *ngIf="results && results.length > 0">
+      <thead>
+        <tr><th>Patient no.</th><th>Name</th><th>Age / Sex</th><th>Under the care of</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of results">
+          <td>{{ p.PatientCode }}</td>
+          <td><strong>{{ p.Name }}</strong></td>
+          <td>{{ p.Age }} / {{ p.Gender }}</td>
+          <td>
+            <span class="ct-chip" [class.ct-chip-red]="!t.DoctorActive" *ngFor="let t of p.Team" [title]="(t.Speciality || '') + (t.DoctorActive ? '' : ' - withdrawn')">
+              {{ t.FullName }}<span *ngIf="t.Speciality"> &middot; {{ t.Speciality }}</span>
+            </span>
+            <span class="ct-chip ct-chip-grey" *ngIf="!p.Team || p.Team.length == 0">no doctor yet</span>
+          </td>
+          <td>
+            <div class="ct-actions">
+              <ng-container *ngIf="p.IsMine">
+                <span class="ct-chip ct-chip-green">On your list</span>
+                <button class="ct-btn ct-small" (click)="openChart(p)" [disabled]="opening == p.PatientId">{{ opening == p.PatientId ? 'Opening...' : 'Open record' }}</button>
+                <button class="ct-btn ct-small ct-secondary" (click)="shareTarget = p">Share</button>
+              </ng-container>
+              <button class="ct-btn ct-small" *ngIf="!p.IsMine" (click)="startAdd(p)">Add to my care</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="ct-empty" *ngIf="results && results.length == 0">
+      <strong>No patient found for "{{ search }}"</strong>
+      Check the spelling, or try just the first name or the patient number. A patient who is not in the system yet can be registered under
+      <em>My Patients &gt; Register new patient</em>.
+    </div>
+    <div class="ct-empty" *ngIf="results == null && !error && !busy">
+      <strong>Type a name above</strong>
+      You will see who the patient is under and can add yourself to their care.
+    </div>
+  </div>
+</div>
+
+<div class="ct-backdrop" *ngIf="addTarget">
+  <div class="ct-dialog" style="max-width: 520px">
+    <div class="ct-dialog-head"><h3>Add to my care</h3><button class="ct-x" (click)="addTarget = null">&times;</button></div>
+    <div class="ct-dialog-body">
+      <p>Add <strong>{{ addTarget.Name }}</strong> ({{ addTarget.PatientCode }}, {{ addTarget.Age }} / {{ addTarget.Gender }}) to your list? You will be able to open the
+        record, and the doctors already looking after the patient will be told.</p>
+      <div class="ct-field">
+        <label class="ct-label">Reason / note (optional)</label>
+        <textarea class="ct-input" rows="3" maxlength="500" [(ngModel)]="addNote" placeholder="e.g. second opinion requested by Dr ..."></textarea>
+      </div>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="addTarget = null">Cancel</button>
+      <button class="ct-btn" (click)="confirmAdd()" [disabled]="adding">{{ adding ? 'Adding ...' : 'Add to my care' }}</button>
+    </div>
+  </div>
+</div>
+
+<ct-share-patient-dialog *ngIf="shareTarget" [patient]="shareTarget" (done)="shared($event)"></ct-share-patient-dialog>

@@ -1,0 +1,25 @@
+<div class="ct-backdrop">
+  <div class="ct-dialog" style="max-width: 520px">
+    <div class="ct-dialog-head"><h3>Share patient</h3><button class="ct-x" (click)="cancel()">&times;</button></div>
+    <div class="ct-dialog-body">
+      <p>Share <strong>{{ patient.Name }}</strong> ({{ patient.PatientCode }}) with another doctor. They will get the patient on their list, be able to open the
+        record, and receive a message from you.</p>
+      <div class="ct-field">
+        <label class="ct-label">Doctor</label>
+        <select class="ct-input" [(ngModel)]="toEmployeeId" name="to" [disabled]="loading">
+          <option [ngValue]="null">{{ loading ? 'Loading ...' : (doctors.length ? 'Choose a doctor' : 'No other doctor available') }}</option>
+          <option *ngFor="let d of doctors" [ngValue]="d.EmployeeId">{{ d.Name }}{{ d.Speciality ? ' - ' + d.Speciality : '' }}</option>
+        </select>
+      </div>
+      <div class="ct-field">
+        <label class="ct-label">Message (optional)</label>
+        <textarea class="ct-input" rows="4" maxlength="500" [(ngModel)]="message" name="msg" placeholder="Why you are sharing the patient, what you would like them to do ..."></textarea>
+      </div>
+      <div class="ct-error" *ngIf="error">{{ error }}</div>
+    </div>
+    <div class="ct-dialog-foot">
+      <button class="ct-btn ct-secondary" (click)="cancel()">Cancel</button>
+      <button class="ct-btn" (click)="share()" [disabled]="saving || loading">{{ saving ? 'Sharing ...' : 'Share patient' }}</button>
+    </div>
+  </div>
+</div>
