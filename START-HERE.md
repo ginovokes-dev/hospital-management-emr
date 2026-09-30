@@ -99,6 +99,8 @@ Before real patient data is stored:
 3. Known limits: sign-in tokens are valid for 24 hours and everybody is signed out when the program restarts; the original product's
    *DICOM listener* endpoint is unchanged; the older Windows-era modules (billing, pharmacy …) are as they were – only doctors are confined;
    the program runs on Mono (the open-source .NET runtime) instead of Windows, which works but is not a combination Microsoft supports;
+   passwords are stored the way the original product stores them (reversible encryption with a key that is part of the program, not a one-way hash) –
+   anybody who can read the database can recover them;
    the database is the free *SQL Server Express* (10 GB per database – enough for a long time, but a hospital that grows beyond it needs a licensed edition);
    the doctor rules recognise requests by patient, visit and clinical-record numbers – a technically skilled doctor who hand-crafts requests
    for rarely used screens that address data by some other number might still reach text of a colleague's patient (without the patient's identity).

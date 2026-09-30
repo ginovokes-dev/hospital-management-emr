@@ -10,7 +10,7 @@
 | `db-init` | same image | One-shot job: on the very first start it restores the two sample databases shipped in `Database/` (`DEV_DanpheEMR_INT`, `DanpheAdmin`). On every later start it finds them and does nothing. |
 | `app` | built from `docker/Dockerfile` | The Danphe web application (Kestrel, ASP.NET Core 2.0 compiled for .NET Framework 4.6.1, run with Mono) that also serves the Angular front-end. Listens on `127.0.0.1:8080`. Uploaded scans and documents are kept in the volume `danphe-emr_appfiles` (mounted at `/data/files`). |
 
-All three are `linux/amd64`. On Apple-silicon Macs Docker Desktop runs them through Rosetta / QEMU emulation (slower, but it works).
+All three are `linux/amd64`. On Apple-silicon Macs Docker Desktop runs them through Rosetta emulation (slower; enable *Use Rosetta for x86_64/amd64 emulation* in Docker Desktop). This was built and tested on Linux/amd64; it has not been run on a real Mac yet.
 
 ### The image, stage by stage
 

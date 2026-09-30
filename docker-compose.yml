@@ -11,6 +11,8 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     platform: linux/amd64
     restart: unless-stopped
+    # a real init process, so that "stop" reaches SQL Server at once instead of waiting ten seconds and killing it
+    init: true
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_PID: Express
@@ -49,6 +51,7 @@ services:
     image: danphe-emr:local
     platform: linux/amd64
     restart: unless-stopped
+    init: true
     depends_on:
       db-init:
         condition: service_completed_successfully
