@@ -6,7 +6,7 @@ import { PatientsDLService } from '../../patients/shared/patients.dl.service';
 import { EmergencyDischargeSummary } from './emergency-discharge-summary.model';
 import { EmergencyPatientModel } from './emergency-patient.model';
 import { EmergencyDLService } from './emergency.dl.service';
-import { UploadCosentFormModel } from './upload-consent-form.Model';
+import { UploadCosentFormModel } from './upload-consent-form.model';
 
 @Injectable()
 export class EmergencyBLService {

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { MessageboxService } from '../../../../shared/messagebox/messagebox.service';
 
-import { RPT_GOVT_InpatientOutcomeModel } from './Inpatient-outcome.model';
+import { RPT_GOVT_InpatientOutcomeModel } from './inpatient-outcome.model';
 import { DLService } from "../../../../shared/dl.service";
 import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment/moment';

@@ -24,7 +24,7 @@ import { ENUM_BillingStatus, ENUM_BillPaymentMode, ENUM_InvoiceType, ENUM_OrderS
 import { GovInsuranceService } from "../shared/ins-service";
 import { GovInsuranceBlService } from "../shared/insurance.bl.service";
 @Component({
-  templateUrl: "./gov-ins-billing-Request.component.html",
+  templateUrl: "./gov-ins-billing-request.component.html",
   host: { '(window:keydown)': 'hotkeys($event)' }
 })
 

@@ -12,7 +12,7 @@ import { InventoryReportsDLService } from "../shared/inventory-reports.dl.servic
 
 @Component({
 
-  templateUrl: "./InventoryValueByItemCategory.html"
+  templateUrl: "./InventoryValueByItemcategory.html"
 
 })
 export class InventoryValueByItemCategoryComponent {

@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, HostListener, ViewChild, OnDest
 import { SecurityService } from '../../../security/shared/security.service';
 import { CoreService } from '../../../core/shared/core.service';
 import{MessageboxService} from '../../../shared/messagebox/messagebox.service';
-import {UploadCosentFormModel} from '../../shared/upload-consent-form.Model';
+import {UploadCosentFormModel} from '../../shared/upload-consent-form.model';
 import * as moment from 'moment/moment';
 import { EmergencyBLService } from '../../shared/emergency.bl.service';
 import { EmergencyPatientModel } from '../../shared/emergency-patient.model';

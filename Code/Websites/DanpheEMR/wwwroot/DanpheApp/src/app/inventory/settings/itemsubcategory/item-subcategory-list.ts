@@ -1,6 +1,6 @@
 import { Component, ChangeDetectorRef } from "@angular/core";
 
-import { ItemSubCategoryModel } from '../shared/item-SubCategory.model';
+import { ItemSubCategoryModel } from '../shared/item-subcategory.model';
 import { InventorySettingBLService } from "../shared/inventory-settings.bl.service";
 
 import GridColumnSettings from '../../../shared/danphe-grid/grid-column-settings.constant';
@@ -10,7 +10,7 @@ import * as moment from 'moment/moment';
 import { AccountHeadModel } from "../shared/account-head.model";
 @Component({
   selector: 'itemSubCategory-list',
-  templateUrl: './item-SubCategory-list.html',
+  templateUrl: './item-subcategory-list.html',
 })
 export class ItemSubCategoryListComponent {
   public itemSubCategoryList: Array<ItemSubCategoryModel> = new Array<ItemSubCategoryModel>();
