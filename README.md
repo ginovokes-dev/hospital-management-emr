@@ -1,3 +1,4 @@
+**Want to use it right away – with doctor logins, private patient lists, sharing and messages, on a Mac or in the browser?  Read [START-HERE.md](START-HERE.md).**<br><br>
 If you are looking forward to install the Danphe you can follow the below labs <br>
 <a href="https://youtu.be/lKORZmKG0sA"> Lab 1 :- Installing Danphe App in desktop mode. </a> <br>
 <a href="https://youtu.be/HmAAbFiPOKw"> Lab 2 :- Configuring Danphe inside IIS. </a> <br>
