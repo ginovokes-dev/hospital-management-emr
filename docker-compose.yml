@@ -1,0 +1,72 @@
+# Danphe EMR - the whole system (database + web application) with one command:
+#
+#     docker compose up -d --build        (or double-click "Start Danphe EMR.command" on a Mac - see START-HERE.md)
+#
+# then open  http://localhost:8080   and sign in as  admin / 123
+name: danphe-emr
+
+services:
+  # ---- the database server (SQL Server; runs as an emulated x86 container on Apple-silicon Macs) ----
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+      MSSQL_SA_PASSWORD: ${DB_PASSWORD:-Danphe#Local2025}
+    volumes:
+      - dbdata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 15s
+
+  # ---- creates the hospital databases from the sample data the first time (then does nothing) ----
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    environment:
+      MSSQL_SA_PASSWORD: ${DB_PASSWORD:-Danphe#Local2025}
+      DB_HOST: db
+    volumes:
+      - dbdata:/var/opt/mssql
+      - ./Database:/db:ro
+      - ./docker/db-init.sh:/db-init.sh:ro
+    entrypoint: ["bash", "/db-init.sh"]
+
+  # ---- the web application ----
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: danphe-emr:local
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: ${DB_PASSWORD:-Danphe#Local2025}
+      # password of the 'admin' login - used the FIRST time only; change it afterwards inside the application
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-123}
+      # 1 = the sample staff logins are switched off and the sample patients are hidden (first start only); 0 = keep the sample data
+      FRESH_START: ${FRESH_START:-1}
+      # scanned images, patient documents ... are kept in this folder (the volume below) - back it up together with the database
+      FILES_DIR: /data/files
+    volumes:
+      - appfiles:/data/files
+    ports:
+      # 127.0.0.1 = only this computer. Set BIND_ADDRESS=0.0.0.0 in .env to let other computers on the network in
+      - "${BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8080}:8080"
+
+volumes:
+  dbdata:
+  appfiles:

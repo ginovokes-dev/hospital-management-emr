@@ -17,3 +17,7 @@ HAMS_Requirements/
 /Code/Websites/DanpheEMR/appsettings.json
 /Database/DanpheEMR_CompleteDB_4th_August_2019.bak
 /Code/Websites/DanpheEMR/DanpheEmrAPI.xml
+# Danphe EMR in Docker: the private database password and any company proxy certificate stay on the computer they belong to
+/.env
+docker/build-support/ca/*.crt
+docker/build-support/ca/*.pem

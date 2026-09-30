@@ -1,0 +1,13 @@
+{
+  "name": "Danphe EMR",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "hostRequirements": { "cpus": 4, "memory": "16gb", "storage": "32gb" },
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": { "label": "Danphe EMR - open this to use the system", "onAutoForward": "openBrowser" }
+  },
+  "postStartCommand": "bash docker/start.sh --no-open"
+}

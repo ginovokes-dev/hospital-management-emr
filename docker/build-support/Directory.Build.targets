@@ -1,0 +1,23 @@
+<!--
+  Docker build only (copied to Code/Directory.Build.targets by the Dockerfile; not part of the sources).
+
+  Visual Studio adds the .NET Framework "Facades" (System.Runtime, System.Collections ... small type-forwarding assemblies) to the
+  compiler's reference list whenever a project uses libraries built for .NET Standard. Newer dotnet SDKs do that only when they can
+  find the Windows reference-assembly folder; here the folder is Mono's copy, so add them explicitly.
+-->
+<Project>
+  <Target Name="AddFrameworkFacades" AfterTargets="ResolveAssemblyReferences" Condition="Exists('$(FrameworkPathOverride)/Facades')">
+    <ItemGroup>
+      <_FacadeFiles Include="$(FrameworkPathOverride)/Facades/*.dll" />
+      <_FacadeNames Include="@(_FacadeFiles->'%(Filename)')">
+        <Original>%(_FacadeFiles.FullPath)</Original>
+      </_FacadeNames>
+      <_KnownRefNames Include="@(ReferencePath->'%(Filename)')" />
+      <_FacadeNames Remove="@(_KnownRefNames)" />
+      <ReferencePath Include="@(_FacadeNames->'%(Original)')">
+        <CopyLocal>false</CopyLocal>
+        <WinMDFile>false</WinMDFile>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+</Project>

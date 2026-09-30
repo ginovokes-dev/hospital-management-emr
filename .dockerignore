@@ -1,0 +1,13 @@
+# things that are rebuilt inside the image or only matter on a developer machine
+.git
+**/node_modules
+**/bin
+**/obj
+**/.vs
+Code/Websites/DanpheEMR/wwwroot/DanpheApp/dist
+Code/Solutions/packages
+tests
+Print
+*.md
+!README.md
+.env
