@@ -34,8 +34,11 @@ To stop it: double-click **`Stop Danphe EMR.command`**. Nothing is lost – pati
 Open <https://codespaces.new/ginovokes-dev/hospital-management-emr/tree/claude/brave-thompson-whs0cb?quickstart=1>
 (needs a GitHub account with access to the repository and Codespaces). Make sure the **branch** shown is `claude/brave-thompson-whs0cb`
 (on GitHub: *Code → Codespaces → Create codespace on claude/brave-thompson-whs0cb*).
-It creates a cloud computer (4 cores, 16 GB), builds and starts the system by itself (20–40 minutes the first time), then opens the
-system in a browser tab; if it does not, open the **Ports** tab and click the link for port **8080**.
+It creates a cloud computer (4 cores, 16 GB), builds and starts the system by itself (20–40 minutes the first time) and shows a short
+"how to open it" note. To watch the progress press **Cmd+Shift+P**, type **Creation Log** and press Enter; when it says **"Danphe EMR is ready"**
+the system opens in a browser tab – if it does not, open the **Ports** tab and click the globe icon next to **8080**.
+If the codespace says it is in "recovery mode", something went wrong while building it: open the Creation Log, and run `git pull` followed by
+**Cmd+Shift+P → Codespaces: Rebuild Container**.
 That link is private to you. A Codespace is good for trying the system out; it goes to sleep when idle and is not a place to keep real
 patient records – for real use, run it on a computer or server of the hospital (option A, on a server – see section 5).
 

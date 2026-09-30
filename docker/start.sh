@@ -62,6 +62,10 @@ if [ "${code:-}" != "200" ]; then
 fi
 
 say "Danphe EMR is ready:  $URL"
+# in GitHub Codespaces the system is reached through a private forwarding address, not through localhost
+if [ -n "${CODESPACE_NAME:-}" ] && [ -n "${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-}" ]; then
+  echo "   In GitHub Codespaces, open:  https://${CODESPACE_NAME}-${PORT}.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}   (or: PORTS tab > globe icon next to ${PORT})"
+fi
 echo "   Administrator sign-in:   username  admin      password  123      (change it after the first sign-in)"
 echo "   The administrator adds doctors and gives them their own logins under \"Manage Doctors\"."
 if [ "$OPEN" = 1 ]; then

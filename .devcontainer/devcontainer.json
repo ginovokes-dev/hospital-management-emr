@@ -1,6 +1,7 @@
 {
   "name": "Danphe EMR",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  // Ubuntu 22.04 on purpose: the plain "ubuntu" image moved to Ubuntu 26.04, which the Docker-in-Docker feature (2.x) refuses to install on
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
@@ -9,5 +10,9 @@
   "portsAttributes": {
     "8080": { "label": "Danphe EMR - open this to use the system", "onAutoForward": "openBrowser" }
   },
-  "postStartCommand": "bash docker/start.sh --no-open"
+  "customizations": {
+    "codespaces": { "openFiles": [".devcontainer/WELCOME.md"] }
+  },
+  // builds and starts the system (20-40 minutes the first time). If it fails, the codespace still opens and says what to do
+  "postStartCommand": "bash docker/start.sh --no-open || echo 'The system did not start - read the messages above, then run:  bash docker/start.sh --no-open'"
 }
